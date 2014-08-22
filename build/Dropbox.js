@@ -5,6 +5,17 @@ function addParams(url, params) {
 		}).join('&');
 }
 
+function call(endpoint, params, callback) {
+	params['access_token'] = localStorage.token;
+	var xhr = new XMLHttpRequest();
+	xhr.onreadystatechange = function () {
+		if (this.readyState === 4)
+			callback(this.responseText);
+	};
+	xhr.open('GET', addParams(endpoint, params));
+	xhr.send(null);
+}
+
 var Dropbox = {
 	isConnected: function () {
 		return !!localStorage.uid;
@@ -37,5 +48,15 @@ var Dropbox = {
 					callback();
 			}
 		)
+	},
+	
+	list: function (callback) {
+		call('https://api.dropbox.com/1/metadata/auto/', {}, function (data) {
+			callback(JSON.parse(data)['contents']);
+		});
+	},
+	
+	load: function (path, callback) {
+		call('https://api-content.dropbox.com/1/files/auto/' + path, {}, callback);
 	}
 };

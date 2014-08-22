@@ -9,6 +9,7 @@
 	"identity",
 	"https://www.dropbox.com",
 	"https://api.dropbox.com"
+	"https://api-content.dropbox.com"
   ],
   
   "chrome_url_overrides": {
