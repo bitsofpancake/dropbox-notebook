@@ -2,25 +2,20 @@
 
 var Notebook = React.createClass({
 	getInitialState: function () {
-		if (Dropbox.isConnected()) {
-			this.initSync();
-		}
-		
-		return {
-			connected: Dropbox.isConnected(),
-			listing: false
-		};
-	},
-	
-	connectDropbox: function () {
-		Dropbox.connect(() => {
+		Dropbox.onConnect = () => {
 			this.setState({ connected: true });
-			this.initSync();
-		});
-	},
-	
-	initSync: function () {
-		Dropbox.list(listing => this.setState({ listing: listing }));
+		};
+		
+		Dropbox.onUpdateListing = (listing, lastUpdate) => {
+			this.setState({ listing: listing, lastUpdate: lastUpdate });
+		};
+		
+		setTimeout(Dropbox.init, 0);
+		return {
+			connected: false,
+			listing: false,
+			lastUpdate: 0,
+		};
 	},
 	
 	setCurrent: function (file) {
@@ -32,33 +27,35 @@ var Notebook = React.createClass({
 	},
 	
 	render: function () {
-		if (this.state.listing)
+		if (!this.state.connected)
 			return (
-				<div>
-					<h1>Welcome, {localStorage.uid}!</h1>
-					<ul>
-						{this.state.listing.map(file => (
-							<li
-								onClick={() => this.setCurrent(file)}
-								style={ this.state.current === file ? {fontWeight: 'bold'} : {} }
-							>
-								{file.path}
-							</li>
-						))}
-					</ul>
-					<pre>
-						{JSON.stringify(this.state.current, null, 4)}
-					</pre>
-				</div>
+				<button onClick={Dropbox.connect}>Connect</button>
 			);
-		else if (this.state.connected)
+			
+		if (!this.state.listing)
 			return (
-				<h1>loading {localStorage.uid}</h1>
+				<h1>loading... ({localStorage.uid})</h1>
 			);
-		else
-			return (
-				<button onClick={this.connectDropbox}>Connect</button>
-			);
+		
+		return (
+			<div>
+				<h1>Welcome, {localStorage.uid}!</h1>
+				<i>Last updated: {this.state.lastUpdate ? (new Date(this.state.lastUpdate)).toLocaleString() : 'never'}</i>
+				<ul>
+					{this.state.listing.map(file => (
+						<li
+							key={file.path}
+							onClick={() => this.setCurrent(file)}
+							style={ this.state.current === file ? {fontWeight: 'bold'} : {} }>
+							{file.path}
+						</li>
+					))}
+				</ul>
+				<pre>
+					{JSON.stringify(this.state.current, null, 4)}
+				</pre>
+			</div>
+		);
 	}
 });
 

@@ -2,25 +2,20 @@
 
 var Notebook = React.createClass({displayName: 'Notebook',
 	getInitialState: function () {
-		if (Dropbox.isConnected()) {
-			this.initSync();
-		}
-		
-		return {
-			connected: Dropbox.isConnected(),
-			listing: false
-		};
-	},
-	
-	connectDropbox: function () {
-		Dropbox.connect(function()  {
+		Dropbox.onConnect = function()  {
 			this.setState({ connected: true });
-			this.initSync();
-		}.bind(this));
-	},
-	
-	initSync: function () {
-		Dropbox.list(function(listing)  {return this.setState({ listing: listing });}.bind(this));
+		}.bind(this);
+		
+		Dropbox.onUpdateListing = function(listing, lastUpdate)  {
+			this.setState({ listing: listing, lastUpdate: lastUpdate });
+		}.bind(this);
+		
+		setTimeout(Dropbox.init, 0);
+		return {
+			connected: false,
+			listing: false,
+			lastUpdate: 0,
+		};
 	},
 	
 	setCurrent: function (file) {
@@ -32,33 +27,35 @@ var Notebook = React.createClass({displayName: 'Notebook',
 	},
 	
 	render: function () {
-		if (this.state.listing)
+		if (!this.state.connected)
 			return (
-				React.DOM.div(null, 
-					React.DOM.h1(null, "Welcome, ", localStorage.uid, "!"), 
-					React.DOM.ul(null, 
-						this.state.listing.map(function(file)  
-							{return React.DOM.li({
-								onClick: function()  {return this.setCurrent(file);}.bind(this), 
-								style:  this.state.current === file ? {fontWeight: 'bold'} : {}
-							}, 
-								file.path
-							);}.bind(this)
-						)
-					), 
-					React.DOM.pre(null, 
-						JSON.stringify(this.state.current, null, 4)
+				React.DOM.button({onClick: Dropbox.connect}, "Connect")
+			);
+			
+		if (!this.state.listing)
+			return (
+				React.DOM.h1(null, "loading... (", localStorage.uid, ")")
+			);
+		
+		return (
+			React.DOM.div(null, 
+				React.DOM.h1(null, "Welcome, ", localStorage.uid, "!"), 
+				React.DOM.i(null, "Last updated: ", this.state.lastUpdate ? (new Date(this.state.lastUpdate)).toLocaleString() : 'never'), 
+				React.DOM.ul(null, 
+					this.state.listing.map(function(file)  
+						{return React.DOM.li({
+							key: file.path, 
+							onClick: function()  {return this.setCurrent(file);}.bind(this), 
+							style:  this.state.current === file ? {fontWeight: 'bold'} : {}}, 
+							file.path
+						);}.bind(this)
 					)
+				), 
+				React.DOM.pre(null, 
+					JSON.stringify(this.state.current, null, 4)
 				)
-			);
-		else if (this.state.connected)
-			return (
-				React.DOM.h1(null, "loading ", localStorage.uid)
-			);
-		else
-			return (
-				React.DOM.button({onClick: this.connectDropbox}, "Connect")
-			);
+			)
+		);
 	}
 });
 

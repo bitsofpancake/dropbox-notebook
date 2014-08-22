@@ -16,12 +16,28 @@ function call(endpoint, params, callback) {
 	xhr.send(null);
 }
 
+var lastUpdate = 0;
 var Dropbox = {
-	isConnected: function () {
-		return !!localStorage.uid;
+	init: function () {
+		if (localStorage.token) {
+			Dropbox.onConnect(localStorage.uid, localStorage.token);
+
+			// Start syncing the listing with Dropbox.
+			(function update() {
+				// Reload from cache if the cache as been updated (e.g. from another tab).
+				if (lastUpdate < +localStorage.lastUpdate)
+					Dropbox.listFromCache();
+				
+				// Refresh stale data from Dropbox.
+				if (+localStorage.lastUpdate < Date.now() - 50000)
+					Dropbox.listFromServer();
+					
+				setTimeout(update, 5000 * (0.9 + Math.random() * 0.2));
+			}());
+		}
 	},
 	
-	connect: function (callback) {
+	connect: function () {
 		chrome.identity.launchWebAuthFlow(
 			{
 				url: addParams(
@@ -43,9 +59,7 @@ var Dropbox = {
 				
 				localStorage.uid = data['uid'];
 				localStorage.token = data['access_token'];
-				
-				if (localStorage.uid)
-					callback();
+				Dropbox.init();
 			}
 		)
 	},
@@ -58,5 +72,21 @@ var Dropbox = {
 	
 	load: function (path, callback) {
 		call('https://api-content.dropbox.com/1/files/auto/' + path, {}, callback);
-	}
+	},
+	
+	listFromCache: function () {
+		if (localStorage.listing)
+			Dropbox.onUpdateListing(JSON.parse(localStorage.listing), lastUpdate = +localStorage.lastUpdate);
+	},
+	
+	listFromServer: function () {
+		Dropbox.list(function (listing) {
+			localStorage.lastUpdate = lastUpdate = Date.now();
+			localStorage.listing = JSON.stringify(listing);
+			Dropbox.onUpdateListing(listing, +localStorage.lastUpdate);
+		});
+	},
+	
+	onUpdateListing: function (listing, lastUpdate) {},
+	onConnect: function (uid, token) {}
 };
