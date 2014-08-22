@@ -13,53 +13,51 @@ var Notebook = React.createClass({
 	},
 	
 	connectDropbox: function () {
-		Dropbox.connect(function () {
+		Dropbox.connect(() => {
 			this.setState({ connected: true });
-			Dropbox.initSync();
+			this.initSync();
 		});
 	},
 	
 	initSync: function () {
-		Dropbox.list(function (listing) {
-			this.setState({ listing: listing });
-		}.bind(this));
+		Dropbox.list(listing => this.setState({ listing: listing }));
 	},
 	
 	setCurrent: function (file) {
 		this.setState({ current: file });
-		Dropbox.load(file.path, function (contents) {
+		Dropbox.load(file.path, contents => {
 			file.contents = contents;
 			this.forceUpdate();
-		}.bind(this));
+		});
 	},
 	
 	render: function () {
-		var self = this;
-		if (self.state.listing)
+		if (this.state.listing)
 			return (
 				<div>
 					<h1>Welcome, {localStorage.uid}!</h1>
 					<ul>
-						{self.state.listing.map(function (file) {
-							return (
-								<li onClick={function () {
-									self.setCurrent(file)
-								}} style={ self.state.current === file ? {fontWeight: 'bold'} : {} }>{file.path}</li>
-							);
-						})}
+						{this.state.listing.map(file => (
+							<li
+								onClick={() => this.setCurrent(file)}
+								style={ this.state.current === file ? {fontWeight: 'bold'} : {} }
+							>
+								{file.path}
+							</li>
+						))}
 					</ul>
 					<pre>
-						{JSON.stringify(self.state.current, null, 4)}
+						{JSON.stringify(this.state.current, null, 4)}
 					</pre>
 				</div>
 			);
-		else if (self.state.connected)
+		else if (this.state.connected)
 			return (
 				<h1>loading {localStorage.uid}</h1>
 			);
 		else
 			return (
-				<button onClick={self.connectDropbox}>Connect</button>
+				<button onClick={this.connectDropbox}>Connect</button>
 			);
 	}
 });

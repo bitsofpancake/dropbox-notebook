@@ -13,53 +13,51 @@ var Notebook = React.createClass({displayName: 'Notebook',
 	},
 	
 	connectDropbox: function () {
-		Dropbox.connect(function () {
+		Dropbox.connect(function()  {
 			this.setState({ connected: true });
-			Dropbox.initSync();
-		});
+			this.initSync();
+		}.bind(this));
 	},
 	
 	initSync: function () {
-		Dropbox.list(function (listing) {
-			this.setState({ listing: listing });
-		}.bind(this));
+		Dropbox.list(function(listing)  {return this.setState({ listing: listing });}.bind(this));
 	},
 	
 	setCurrent: function (file) {
 		this.setState({ current: file });
-		Dropbox.load(file.path, function (contents) {
+		Dropbox.load(file.path, function(contents)  {
 			file.contents = contents;
 			this.forceUpdate();
 		}.bind(this));
 	},
 	
 	render: function () {
-		var self = this;
-		if (self.state.listing)
+		if (this.state.listing)
 			return (
 				React.DOM.div(null, 
 					React.DOM.h1(null, "Welcome, ", localStorage.uid, "!"), 
 					React.DOM.ul(null, 
-						self.state.listing.map(function (file) {
-							return (
-								React.DOM.li({onClick: function () {
-									self.setCurrent(file)
-								}, style:  self.state.current === file ? {fontWeight: 'bold'} : {}}, file.path)
-							);
-						})
+						this.state.listing.map(function(file)  
+							{return React.DOM.li({
+								onClick: function()  {return this.setCurrent(file);}.bind(this), 
+								style:  this.state.current === file ? {fontWeight: 'bold'} : {}
+							}, 
+								file.path
+							);}.bind(this)
+						)
 					), 
 					React.DOM.pre(null, 
-						JSON.stringify(self.state.current, null, 4)
+						JSON.stringify(this.state.current, null, 4)
 					)
 				)
 			);
-		else if (self.state.connected)
+		else if (this.state.connected)
 			return (
 				React.DOM.h1(null, "loading ", localStorage.uid)
 			);
 		else
 			return (
-				React.DOM.button({onClick: self.connectDropbox}, "Connect")
+				React.DOM.button({onClick: this.connectDropbox}, "Connect")
 			);
 	}
 });
