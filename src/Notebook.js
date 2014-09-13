@@ -5,13 +5,12 @@ var React = require('react');
 
 var Notebook = React.createClass({
 	getInitialState: function () {
-		Dropbox.onConnect = () => {
+		Dropbox.on('connect', () => {
 			this.setState({ connected: true });
-		};
-		
-		Dropbox.onUpdateListing = (listing, lastUpdate) => {
+		});
+		Dropbox.on('updateListing', (listing, lastUpdate) => {
 			this.setState({ listing: listing, lastUpdate: lastUpdate });
-		};
+		});
 		
 		setTimeout(Dropbox.init, 0);
 		return {
