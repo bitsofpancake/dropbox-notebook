@@ -1,98 +1,73 @@
 /** @jsx */
 var EventEmitter = require('events').EventEmitter;
+var querystring = require('querystring');
 
 function addParams(url, params) {
-	return url + '?' + 
-		Object.keys(params).map(function (key) {
-			return encodeURIComponent(key) + '=' + encodeURIComponent(params[key]);
-		}).join('&');
+	return url + '?' + querystring.stringify(params);
 }
 
-function call(endpoint, params) {
-	params = params || {};
-	params['access_token'] = localStorage.token;
-	return new Promise(function (resolve, reject) {
-		var xhr = new XMLHttpRequest();
-		xhr.onreadystatechange = function () {
-			if (this.readyState === 4) {
-				if (this.status === 200)
-					resolve(this.responseText);
-				else
-					reject(new Error(this.statusText));
-			}
-		};
-		xhr.open('GET', addParams(endpoint, params));
-		xhr.send(null);
-	});
-}
-
-var lastUpdate = 0;
-var Dropbox = new EventEmitter();
-Dropbox.init = function () {
-	if (localStorage.token) {
-		Dropbox.emit('connect', localStorage.uid, localStorage.token);
-
-		// Start syncing the listing with Dropbox.
-		(function update() {
-			// Reload from cache if the cache as been updated (e.g. from another tab).
-			if (lastUpdate < +localStorage.lastUpdate)
-				Dropbox.listFromCache();
-			
-			// Refresh stale data from Dropbox.
-			if (+localStorage.lastUpdate < Date.now() - 50000)
-				Dropbox.listFromServer();
-				
-			setTimeout(update, 5000 * (0.9 + Math.random() * 0.2));
-		}());
+class Dropbox extends EventEmitter {
+	constructor(clientId, uid, token) {
+		this.uid = uid;
+		this._clientId = clientId;
+		this._token = token;
+		
+		if (token)
+			setTimeout(() => this.emit('connected', uid, token), 0);
 	}
-};
 
-Dropbox.connect = function () {
-	chrome.identity.launchWebAuthFlow(
-		{
-			url: addParams(
-				'https://www.dropbox.com/1/oauth2/authorize',
-				{
-					'response_type': 'token',
-					'client_id': '1nghqb9dkbfv5gj',
-					'redirect_uri': chrome.identity.getRedirectURL()
+	connect() {
+		chrome.identity.launchWebAuthFlow(
+			{
+				url: addParams(
+					'https://www.dropbox.com/1/oauth2/authorize',
+					{
+						'response_type': 'token',
+						'client_id': this._clientId,
+						'redirect_uri': chrome.identity.getRedirectURL()
+					}
+				),
+				interactive: true
+			},
+			url => {
+				var data = querystring.parse(url.split('#')[1]);
+				this.emit('connected', this.uid = data['uid'], this._token = data['access_token']);
+			}
+		)
+	}
+
+	list(path) {
+		return this._call('https://api.dropbox.com/1/metadata/auto/' + path.replace(/^\//, ''))
+			.then(data => JSON.parse(data)['contents']);
+	}
+
+	download(path) {
+		return this._call('https://api-content.dropbox.com/1/files/auto/' + path.replace(/^\//, ''));
+	}
+	
+	upload(path, file, parentRevision) {
+		return this._call('https://api-content.dropbox.com/1/files_put/auto/' + path.replace(/^\//, ''), {
+			'parent_rev': parentRevision
+		}, file);
+	}
+	
+	_call(endpoint, params, data) {
+		params = params || {};
+		params['access_token'] = this._token;
+		return new Promise(function (resolve, reject) {
+			var xhr = new XMLHttpRequest();
+			xhr.onreadystatechange = function () {
+				if (this.readyState === 4) {
+					if (this.status === 200)
+						resolve(this.responseText);
+					else
+						reject(new Error(this.statusText));
 				}
-			),
-			interactive: true
-		},
-		function (url) {
-			var data = {};
-			url.split('#')[1].split('&').forEach(function (param) {
-				var pieces = param.split('=');
-				data[pieces[0]] = pieces[1];
-			});
-			
-			localStorage.uid = data['uid'];
-			localStorage.token = data['access_token'];
-			Dropbox.init();
-		}
-	)
-};
-
-Dropbox.list = function (path) {
-	return call('https://api.dropbox.com/1/metadata/auto/' + path.replace(/^\//, '')).then(data => JSON.parse(data)['contents']);
-};
-
-Dropbox.load = function (path) {
-	return call('https://api-content.dropbox.com/1/files/auto/' + path.replace(/^\//, ''));
-};
-
-Dropbox.listFromCache = function () {
-	if (localStorage.listing)
-		Dropbox.emit('updateListing', JSON.parse(localStorage.listing), lastUpdate = +localStorage.lastUpdate);
-};
-
-Dropbox.listFromServer = function () {
-	Dropbox.list('/', function (listing) {
-		localStorage.lastUpdate = lastUpdate = Date.now();
-		localStorage.listing = JSON.stringify(listing);
-		Dropbox.emit('updateListing', listing, +localStorage.lastUpdate);
-	});
+			};
+			xhr.open(data ? 'POST' : 'GET', addParams(endpoint, params));
+			xhr.send(data);
+		});
+	}
 };
 
 module.exports = Dropbox;

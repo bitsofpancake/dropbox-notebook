@@ -1,62 +1,95 @@
 /** @jsx React.DOM */
 
 var Dropbox = require('./Dropbox');
+var DropboxSync = require('./DropboxSync');
 var React = require('react');
 
 var Notebook = React.createClass({
-	getInitialState: function () {
-		Dropbox.on('connect', () => {
+	getInitialState: function () {		
+		this.db = new Dropbox('1nghqb9dkbfv5gj', localStorage.uid, localStorage.token);
+		this.db.once('connected', (uid, token) => {
+			localStorage.uid = uid;
+			localStorage.token = token;
 			this.setState({ connected: true });
-		});
-		Dropbox.on('updateListing', (listing, lastUpdate) => {
-			this.setState({ listing: listing, lastUpdate: lastUpdate });
+			
+			this.dbSync = new DropboxSync(this.db, '/');
+			this.dbSync.on('update', data => {
+				this.setState({
+					listing: data.listing,
+					date: data.date
+				});
+			});
 		});
 		
-		setTimeout(Dropbox.init, 0);
 		return {
 			connected: false,
 			listing: false,
-			lastUpdate: 0,
+			date: 0,
+			currentFile: null
 		};
 	},
 	
 	// Sets the current file.
-	setCurrent: function (file) {
-		this.setState({ current: file });
-		Dropbox.load(file.path).then(contents => {
-			file.contents = contents;
-			this.forceUpdate();
+	setCurrentFile: function (file) {
+		this.setState({
+			currentFile: file,
+			currentFileContents: false
 		});
+		this.db.download(file.path).then(contents => {
+			if (file.path === this.state.currentFile.path)
+				this.setState({ currentFileContents: contents });
+		});
+	},
+	
+	onEdit: function (e) {
+		this.setState({ currentFileContents: e.target.value });
+		this.db.upload(
+			this.state.currentFile.path,
+			e.target.value, //this.state.currentFileContents,
+			this.state.currentFile.rev
+		);
 	},
 	
 	render: function () {
 		if (!this.state.connected)
 			return (
-				<button onClick={Dropbox.connect}>Connect</button>
+				<button onClick={this.db.connect}>Connect</button>
 			);
 			
 		if (!this.state.listing)
 			return (
-				<h1>loading... ({localStorage.uid})</h1>
+				<h1>loading... ({this.db.uid})!</h1>
+			);
+		
+		if (this.state.currentFile)
+			var editing = (
+				<div>						
+					<pre>
+						{JSON.stringify(this.state.currentFile, null, 4)}
+					</pre>
+					{
+						typeof this.state.currentFileContents === 'string'
+							? <textarea value={this.state.currentFileContents} onChange={this.onEdit} />
+							: 'loading...'
+					}
+				</div>
 			);
 		
 		return (
 			<div>
-				<h1>Welcome, {localStorage.uid}!</h1>
-				<i>Last updated: {this.state.lastUpdate ? (new Date(this.state.lastUpdate)).toLocaleString() : 'never'}</i>
+				<h1>Welcome, {this.db.uid}!</h1>
+				<i>Last updated: {this.state.date ? (new Date(this.state.date)).toLocaleString() : 'never'}</i>
 				<ul>
 					{this.state.listing.map(file => (
 						<li
 							key={file.path}
-							onClick={() => this.setCurrent(file)}
-							style={ this.state.current === file ? {fontWeight: 'bold'} : {} }>
+							onClick={() => this.setCurrentFile(file)}
+							style={ this.state.currentFile && this.state.currentFile.path === file.path ? {fontWeight: 'bold'} : {} }>
 							{file.path}
 						</li>
 					))}
 				</ul>
-				<pre>
-					{JSON.stringify(this.state.current, null, 4)}
-				</pre>
+				{editing}
 			</div>
 		);
 	}
