@@ -3,6 +3,7 @@
 var Dropbox = require('./Dropbox');
 var DropboxSync = require('./DropboxSync');
 var Editor = require('./Editor');
+var Preview = require('./Preview');
 var React = require('react');
 
 function throttle(fn) {
@@ -53,8 +54,12 @@ var Notebook = React.createClass({
 		});
 	},
 	
-	onEdit: throttle(function (value) {
-		//this.setState({ currentFileContents: e.target.value });
+	onEdit: function (value) {
+		this.setState({ currentFileContents: value });
+		this.save(value);
+	},
+	
+	save: throttle(function (value) {
 		this.db.upload(
 			this.state.currentFile.path,
 			value, //this.state.currentFileContents,
@@ -81,7 +86,12 @@ var Notebook = React.createClass({
 					</pre>
 					{
 						typeof this.state.currentFileContents === 'string'
-							? <Editor initialValue={this.state.currentFileContents} onChange={this.onEdit} />
+							? (
+								<div>
+									<Editor initialValue={this.state.currentFileContents} onChange={this.onEdit} />
+									<Preview markdown={this.state.currentFileContents} />
+								</div>
+							)
 							: 'loading...'
 					}
 				</div>

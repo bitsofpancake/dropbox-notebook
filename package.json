@@ -8,7 +8,8 @@
   
 	"dependencies": {
 		"react": "~0.11.1",
-		"codemirror": "~4.5.0"
+		"codemirror": "~4.5.0",
+		"marked": "~0.3.2"
 	},
 	
 	"devDependencies": {

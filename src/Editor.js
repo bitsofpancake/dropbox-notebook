@@ -7,6 +7,10 @@ var Editor = React.createClass({
 	render: function () {
 		return <div />;
     },
+	
+	shouldComponentUpdate: function () {
+		return false;
+	},
 
     componentDidMount: function () {
 		CodeMirror(this.getDOMNode(), {
