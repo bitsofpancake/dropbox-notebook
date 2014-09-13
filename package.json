@@ -18,6 +18,6 @@
 	
 	"scripts": {
 		"build": "browserify -t [ reactify --es6 ] src/main.js -o main.js",
-		"watch": "watchify -t [ reactify --es6 ] src/main.js -o main.js"
+		"watch": "watchify -dv -t [ reactify --es6 ] src/main.js -o main.js"
 	}
 }

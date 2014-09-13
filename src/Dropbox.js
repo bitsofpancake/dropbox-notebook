@@ -21,7 +21,6 @@ function call(endpoint, params, callback) {
 var lastUpdate = 0;
 
 var Dropbox = new EventEmitter();
-
 Dropbox.init = function () {
 	if (localStorage.token) {
 		Dropbox.emit('connect', localStorage.uid, localStorage.token);
@@ -87,7 +86,7 @@ Dropbox.listFromServer = function () {
 	Dropbox.list('/', function (listing) {
 		localStorage.lastUpdate = lastUpdate = Date.now();
 		localStorage.listing = JSON.stringify(listing);
-		Dropbox.onUpdateListing(listing, +localStorage.lastUpdate);
+		Dropbox.emit('updateListing', listing, +localStorage.lastUpdate);
 	});
 };
 
