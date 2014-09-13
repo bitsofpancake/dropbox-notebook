@@ -2,7 +2,19 @@
 
 var Dropbox = require('./Dropbox');
 var DropboxSync = require('./DropboxSync');
+var Editor = require('./Editor');
 var React = require('react');
+
+function throttle(fn) {
+	var to;
+	var args = false;
+	return function () {
+		var self = this;
+		clearTimeout(to);
+		args = [].slice.call(arguments);
+		to = setTimeout(function () { fn.apply(self, args) }, 5000);
+	};
+}
 
 var Notebook = React.createClass({
 	getInitialState: function () {		
@@ -41,14 +53,14 @@ var Notebook = React.createClass({
 		});
 	},
 	
-	onEdit: function (e) {
-		this.setState({ currentFileContents: e.target.value });
+	onEdit: throttle(function (value) {
+		//this.setState({ currentFileContents: e.target.value });
 		this.db.upload(
 			this.state.currentFile.path,
-			e.target.value, //this.state.currentFileContents,
+			value, //this.state.currentFileContents,
 			this.state.currentFile.rev
 		);
-	},
+	}),
 	
 	render: function () {
 		if (!this.state.connected)
@@ -69,7 +81,7 @@ var Notebook = React.createClass({
 					</pre>
 					{
 						typeof this.state.currentFileContents === 'string'
-							? <textarea value={this.state.currentFileContents} onChange={this.onEdit} />
+							? <Editor initialValue={this.state.currentFileContents} onChange={this.onEdit} />
 							: 'loading...'
 					}
 				</div>
