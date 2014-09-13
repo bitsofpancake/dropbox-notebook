@@ -1,3 +1,4 @@
+/** @jsx */
 var EventEmitter = require('events').EventEmitter;
 
 function addParams(url, params) {
@@ -7,19 +8,25 @@ function addParams(url, params) {
 		}).join('&');
 }
 
-function call(endpoint, params, callback) {
+function call(endpoint, params) {
+	params = params || {};
 	params['access_token'] = localStorage.token;
-	var xhr = new XMLHttpRequest();
-	xhr.onreadystatechange = function () {
-		if (this.readyState === 4)
-			callback(this.responseText);
-	};
-	xhr.open('GET', addParams(endpoint, params));
-	xhr.send(null);
+	return new Promise(function (resolve, reject) {
+		var xhr = new XMLHttpRequest();
+		xhr.onreadystatechange = function () {
+			if (this.readyState === 4) {
+				if (this.status === 200)
+					resolve(this.responseText);
+				else
+					reject(new Error(this.statusText));
+			}
+		};
+		xhr.open('GET', addParams(endpoint, params));
+		xhr.send(null);
+	});
 }
 
 var lastUpdate = 0;
-
 var Dropbox = new EventEmitter();
 Dropbox.init = function () {
 	if (localStorage.token) {
@@ -67,14 +74,12 @@ Dropbox.connect = function () {
 	)
 };
 
-Dropbox.list = function (path, callback) {
-	call('https://api.dropbox.com/1/metadata/auto/' + path.replace(/^\//, ''), {}, function (data) {
-		callback(JSON.parse(data)['contents']);
-	});
+Dropbox.list = function (path) {
+	return call('https://api.dropbox.com/1/metadata/auto/' + path.replace(/^\//, '')).then(data => JSON.parse(data)['contents']);
 };
 
-Dropbox.load = function (path, callback) {
-	call('https://api-content.dropbox.com/1/files/auto/' + path.replace(/^\//, ''), {}, callback);
+Dropbox.load = function (path) {
+	return call('https://api-content.dropbox.com/1/files/auto/' + path.replace(/^\//, ''));
 };
 
 Dropbox.listFromCache = function () {

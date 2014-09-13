@@ -23,7 +23,7 @@ var Notebook = React.createClass({
 	// Sets the current file.
 	setCurrent: function (file) {
 		this.setState({ current: file });
-		Dropbox.load(file.path, contents => {
+		Dropbox.load(file.path).then(contents => {
 			file.contents = contents;
 			this.forceUpdate();
 		});
