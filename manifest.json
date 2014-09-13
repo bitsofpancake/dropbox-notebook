@@ -1,18 +1,18 @@
 {
-  "manifest_version": 2,
+	"manifest_version": 2,
 
-  "name": "Dropbox Notebook",
-  "description": "",
-  "version": "0.1",
+	"name": "Dropbox Notebook",
+	"description": "",
+	"version": "0.1",
 
-  "permissions": [
-	"identity",
-	"https://www.dropbox.com",
-	"https://api.dropbox.com"
-	"https://api-content.dropbox.com"
-  ],
-  
-  "chrome_url_overrides": {
-	"newtab": "index.html"
-  }
+	"permissions": [
+		"identity",
+		"https://www.dropbox.com/",
+		"https://api.dropbox.com/",
+		"https://api-content.dropbox.com/"
+	],
+
+	"chrome_url_overrides": {
+		"newtab": "index.html"
+	}
 }

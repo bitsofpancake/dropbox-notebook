@@ -64,14 +64,14 @@ var Dropbox = {
 		)
 	},
 	
-	list: function (callback) {
-		call('https://api.dropbox.com/1/metadata/auto/', {}, function (data) {
+	list: function (path, callback) {
+		call('https://api.dropbox.com/1/metadata/auto/' + path.replace(/^\//, ''), {}, function (data) {
 			callback(JSON.parse(data)['contents']);
 		});
 	},
 	
 	load: function (path, callback) {
-		call('https://api-content.dropbox.com/1/files/auto/' + path, {}, callback);
+		call('https://api-content.dropbox.com/1/files/auto/' + path.replace(/^\//, ''), {}, callback);
 	},
 	
 	listFromCache: function () {
@@ -80,13 +80,16 @@ var Dropbox = {
 	},
 	
 	listFromServer: function () {
-		Dropbox.list(function (listing) {
+		Dropbox.list('/', function (listing) {
 			localStorage.lastUpdate = lastUpdate = Date.now();
 			localStorage.listing = JSON.stringify(listing);
 			Dropbox.onUpdateListing(listing, +localStorage.lastUpdate);
 		});
 	},
 	
+	// TODO: Replace this with an actual pub/sub library.
 	onUpdateListing: function (listing, lastUpdate) {},
 	onConnect: function (uid, token) {}
 };
+
+module.exports = Dropbox;
