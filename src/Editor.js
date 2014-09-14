@@ -10,8 +10,10 @@ var Editor = React.createClass({
     },
 
 	componentDidUpdate: function () {
-		if (this.cm && this.cm.getValue() !== this.props.value)
+		if (this.cm && this.cm.getValue() !== this.props.value) {
 			this.cm.setValue(this.props.value);
+			this.cm.focus();
+		}
 	},
 
     componentDidMount: function () {
@@ -21,6 +23,7 @@ var Editor = React.createClass({
 			lineWrapping: true,
 			matchBrackets: true,
 			indentUnit: 4,
+			autofocus: true,
 			mode: 'text/x-markdown'
 		});
 		this.cm.on('change', cm => {

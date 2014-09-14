@@ -68,6 +68,21 @@ var Notebook = React.createClass({
 		);
 	}),
 	
+	createFile: function () {
+		var newFile = {
+			path: '/' + prompt('Give your file a name.')
+		};
+		
+		if (this.state.listing.some(file => file.path === newFile.path))
+			return alert('This file already exists!');
+		
+		this.setState({
+			listing: this.state.listing.concat([newFile]),
+			currentFile: newFile,
+			currentFileContents: ''
+		});
+	},
+	
 	render: function () {
 		if (!this.state.connected)
 			return (
@@ -92,6 +107,8 @@ var Notebook = React.createClass({
 								{file.path}
 							</li>
 						))}
+						
+						<li className="command" onClick={this.createFile}>add new file</li>
 					</ul>
 				</div>
 				

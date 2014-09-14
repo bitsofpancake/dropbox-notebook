@@ -47,6 +47,12 @@ html, body, .container {
 .listing li.selected {
 	background-color: #cce;
 }
+.listing li.command {
+	margin-top: 1.5em;
+}
+.listing li.command ~ .command {
+	margin-top: 0.125em;
+}
 
 .editor, .preview {
 	min-width: 300px;
