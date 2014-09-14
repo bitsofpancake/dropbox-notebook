@@ -1,0 +1,193 @@
+*, *:before, *:after {
+	box-sizing: inherit;
+}
+
+html, body, .container {
+	font-family: "segoe ui", helvetica, sans-serif;
+	margin: 0;
+	padding: 0;
+	width: 100%;
+	height: 100%;
+	box-sizing: border-box;
+}
+
+.container {
+	display: flex;
+	justify-content: center;
+	align-items: stretch;
+}
+
+.listing {
+	width: 250px;
+	height: 100%;
+	overflow-y: auto;
+	padding: 1em 0 1em 1em;
+	font-size: 1.2em;
+}
+.listing ul {
+	margin: 0;
+	padding: 0;
+}
+.listing li {
+	list-style-type: none;
+	margin: 0.125em 0;
+	padding: 0.25em 0.25em 0.25em 0.5em;
+	cursor: pointer;
+	color: #0645ad;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	white-space: nowrap;
+}
+.listing li:first-child {
+	margin-top: 0;
+}
+.listing li:hover {
+	background-color: #f0f0fe;
+}
+.listing li.selected {
+	background-color: #cce;
+}
+
+.editor, .preview {
+	min-width: 300px;
+	max-width: 700px;
+	flex: 1;
+	height: 100%;
+}
+
+.CodeMirror {
+	line-height: 1.5;
+	height: 100%;
+	box-sizing: default
+}
+
+.CodeMirror-gutters, .listing {
+	background-color: #f7f7ff;
+}
+
+.CodeMirror-linenumbers {
+	padding-right: 10px;
+}
+
+.CodeMirror-lines {
+	padding: 1em 0 1em 1em;
+}
+
+.preview {
+	overflow-y: auto;
+	font-family: georgia;
+	border-left: 1px solid #f7f7f7;
+	background-color: #fafafa;
+	padding: 1em 2em;
+	line-height: 1.5;
+}
+
+/* Preview styles... maybe these should be prefixed with `.preview` */
+a {
+	color: #0645ad;
+	text-decoration: none;
+}
+a:visited {
+	color: #0b0080;
+}
+a:hover {
+	color: #06e;
+}
+a:active {
+	color:#faa700; 
+}
+
+p {
+	margin: 1em 0;
+}
+
+h1, h2, h3, h4, h5, h6 {
+	font-weight: normal;
+	color: #111;
+	line-height: 1em;
+	margin: 1em 0 0;
+}
+h1:first-child, h2:first-child, h3:first-child, h4:first-child, h5:first-child, h6:first-child {
+	margin-top: 0.5em;
+}
+h4, h5, h6 {
+	font-weight: bold;
+}
+h1 { font-size: 2.5em; }
+h2 {
+	font-size: 2em;
+	border-bottom: 1px solid silver;
+	padding-bottom: 5px;
+}
+h3 { font-size: 1.5em; }
+h4 { font-size: 1.2em; }
+h5 { font-size: 1em; }
+h6 { font-size: 0.9em; }
+
+blockquote {
+	color: #666;
+	margin: 0;
+	padding: 0 1em;
+	border-left: 0.5em solid #eee;
+}
+hr {
+	display: block;
+	height: 2px;
+	border: 0;
+	border-top: 1px solid #aaa;
+	border-bottom: 1px solid #eee;
+	margin: 1em 0;
+	padding: 0;
+}
+
+pre {
+	white-space: pre-wrap;
+	word-wrap: break-word;
+}
+code {
+	color: #000;
+	font-family: consolas, monospace;
+	border-radius: 3px;
+	background-color: #F5F5F8;
+	border: 1px solid #CCC;
+	padding: 3px;
+	font-size: 0.9em;
+}
+pre code {
+	display: block;
+	padding: 8px 12px;
+}
+
+ul, ol {
+	margin: 1em 0;
+}
+li ul, li ol {
+	margin: 0;
+}
+
+img {
+	max-width:100%;
+	border: 0;
+	vertical-align: middle;
+}
+
+table {
+	margin: 1em 0;
+	border-collapse: collapse;
+}
+th {
+	font-weight: normal;
+	color: #111;
+	background-color: #f0f0fa;
+}
+td, th {
+	vertical-align: top;
+	padding: 4px 10px;
+	border: 1px solid #bbb;
+}
+tr:nth-child(odd) {
+	background-color: #fff;
+}
+tr:nth-child(even) {
+	background-color: #fafafa;
+}

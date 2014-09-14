@@ -48,6 +48,7 @@ var Notebook = React.createClass({
 			currentFile: file,
 			currentFileContents: false
 		});
+		console.log(file);
 		this.db.download(file.path).then(contents => {
 			if (file.path === this.state.currentFile.path)
 				this.setState({ currentFileContents: contents });
@@ -62,8 +63,8 @@ var Notebook = React.createClass({
 	save: throttle(function (value) {
 		this.db.upload(
 			this.state.currentFile.path,
-			value, //this.state.currentFileContents,
-			this.state.currentFile.rev
+			value//, //this.state.currentFileContents,
+			//this.state.currentFile.rev
 		);
 	}),
 	
@@ -78,40 +79,24 @@ var Notebook = React.createClass({
 				<h1>loading... ({this.db.uid})!</h1>
 			);
 		
-		if (this.state.currentFile)
-			var editing = (
-				<div>						
-					<pre>
-						{JSON.stringify(this.state.currentFile, null, 4)}
-					</pre>
-					{
-						typeof this.state.currentFileContents === 'string'
-							? (
-								<div>
-									<Editor initialValue={this.state.currentFileContents} onChange={this.onEdit} />
-									<Preview markdown={this.state.currentFileContents} />
-								</div>
-							)
-							: 'loading...'
-					}
-				</div>
-			);
-		
 		return (
-			<div>
-				<h1>Welcome, {this.db.uid}!</h1>
-				<i>Last updated: {this.state.date ? (new Date(this.state.date)).toLocaleString() : 'never'}</i>
-				<ul>
-					{this.state.listing.map(file => (
-						<li
-							key={file.path}
-							onClick={() => this.setCurrentFile(file)}
-							style={ this.state.currentFile && this.state.currentFile.path === file.path ? {fontWeight: 'bold'} : {} }>
-							{file.path}
-						</li>
-					))}
-				</ul>
-				{editing}
+			<div className="container">
+				<div className="listing">
+					<ul>
+						{this.state.listing.map(file => (
+							<li
+								key={file.path}
+								onClick={() => this.setCurrentFile(file)}
+								title={file.path}
+								className={this.state.currentFile && this.state.currentFile.path === file.path ? 'selected' : ''}>
+								{file.path}
+							</li>
+						))}
+					</ul>
+				</div>
+				
+				<Editor className="editor" value={this.state.currentFileContents || ''} onChange={this.onEdit} />
+				<Preview className="preview" markdown={this.state.currentFileContents || ''} />
 			</div>
 		);
 	}

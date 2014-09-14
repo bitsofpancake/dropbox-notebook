@@ -2,24 +2,28 @@
 
 var CodeMirror = require('codemirror');
 var React = require('react');
+require('codemirror/mode/markdown/markdown');
 
 var Editor = React.createClass({
 	render: function () {
-		return <div />;
+		return this.transferPropsTo(<div />);
     },
-	
-	shouldComponentUpdate: function () {
-		return false;
+
+	componentDidUpdate: function () {
+		if (this.cm && this.cm.getValue() !== this.props.value)
+			this.cm.setValue(this.props.value);
 	},
 
     componentDidMount: function () {
-		CodeMirror(this.getDOMNode(), {
-			value: this.props.initialValue,
-			lineNumbers: true,
+		this.cm = CodeMirror(this.getDOMNode(), {
+			value: this.props.value,
+			lineNumbers: false,
+			lineWrapping: true,
 			matchBrackets: true,
 			indentUnit: 4,
 			mode: 'text/x-markdown'
-		}).on('change', cm => {
+		});
+		this.cm.on('change', cm => {
 			if (this.props.onChange)
 				this.props.onChange(cm.getValue());
 		});
