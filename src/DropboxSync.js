@@ -23,8 +23,8 @@ class DropboxSync extends EventEmitter {
 		}
 	}
 
-	refreshFromServer() {
-		if (!this._data || Date.now() > this._data.date + 50000) {
+	refreshFromServer(override) {
+		if (override || !this._data || Date.now() > this._data.date + 50000) {
 			this._db.list(this._directory).then(listing => {
 				console.log('refreshed from server');
 				var data = this._data = {

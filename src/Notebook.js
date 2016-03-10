@@ -86,7 +86,7 @@ var Notebook = React.createClass({
 	render: function () {
 		if (!this.state.connected)
 			return (
-				<button onClick={this.db.connect}>Connect</button>
+				<button onClick={() => this.db.connect()}>Connect</button>
 			);
 			
 		if (!this.state.listing)
@@ -109,6 +109,7 @@ var Notebook = React.createClass({
 						))}
 						
 						<li className="command" onClick={this.createFile}>add new file</li>
+						<li className="command" onClick={() => this.dbSync.refreshFromServer(true)}>refresh listing</li>
 					</ul>
 				</div>
 				
